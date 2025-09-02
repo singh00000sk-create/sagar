@@ -122,85 +122,88 @@
     document.addEventListener("DOMContentLoaded", function () {
       const audio = document.getElementById("birthdaySong");
       const control = document.getElementById("musicControl");
-      const icon = document.getElementById("musicIcon");
-      
-      // initial volume
+      const lyricsContainer = document.getElementById("lyrics");
+
+      // your existing volume/play setup…
       audio.volume = 0.5;
+      audio.play().catch(() => {});
 
-      // attempt to play on load (fallback for autoplay policies)
-      audio.play().catch(e => console.warn("Autoplay prevented:", e));
-
-      // toggle play/pause on control click
       control.addEventListener("click", () => {
-        if (audio.paused) {
-          audio.play();
-        } else {
-          audio.pause();
-        }
+        if (audio.paused) audio.play();
+        else audio.pause();
       });
-
-      // update control icon state
-      audio.addEventListener("play", () => control.classList.remove("paused"));
+      audio.addEventListener("play",  () => control.classList.remove("paused"));
       audio.addEventListener("pause", () => control.classList.add("paused"));
 
-      // only start lyrics when music plays
-      let lyricsStarted = false;
-      audio.addEventListener("play", () => {
-        if (!lyricsStarted) {
-          displayLyrics();
-          lyricsStarted = true;
-        }
-      });
+      // —— NEW LYRIC SYNC LOGIC —— 
 
-      // Lyrics timing and animation
       const lyrics = [
-        { time: 0, text: "AARE JAB TU, BHADAKTI HAIN" },
-    
+        { time:    0, text: "AARE JAB TU, BHADAKTI HAIN" },
         { time: 2200, text: "DIL PE CHALE" },
         { time: 3800, text: "GOLIYAAN..., ... ... ... ... ..." },
         { time: 5700, text: "HAAYE..." },
       ];
 
-      function displayLyrics() {
-        const lyricsContainer = document.getElementById("lyrics");
-        lyrics.forEach(lyric => {
+      let shown = new Set();
+      let lastTime = 0;
+
+      audio.addEventListener("timeupdate", () => {
+        // convert to ms
+        const t = audio.currentTime * 1000;
+
+        // detect loop-around
+        if (t < lastTime) {
+          shown.clear();
+          lyricsContainer.innerHTML = "";
+        }
+
+        lyrics.forEach((lyric, idx) => {
+          if (t >= lyric.time && !shown.has(idx)) {
+            shown.add(idx);
+            showLine(lyric.text);
+          }
+        });
+
+        lastTime = t;
+      });
+
+      function showLine(text) {
+        // clear previous
+        lyricsContainer.innerHTML = "";
+        const line = document.createElement("div");
+        line.className = "lyric-line";
+        lyricsContainer.appendChild(line);
+
+        let delayAcc = 0;
+        text.split(" ").forEach(word => {
+          const w = document.createElement("div")
+          w.className = "word";
+          w.textContent = word;
+          line.appendChild(w);
+
           setTimeout(() => {
-            lyricsContainer.innerHTML = "";
-            const line = document.createElement("div");
-            line.className = "lyric-line";
-            lyricsContainer.appendChild(line);
-
-            let delayAcc = 0;
-            lyric.text.split(" ").forEach(word => {
-              const w = document.createElement("div");
-              w.className = "word";
-              w.textContent = word;
-              line.appendChild(w);
-
-              setTimeout(() => {
-                anime({
-                  targets: w,
-                  opacity: [0, 1],
-                  translateY: [30, 0],
-                  duration: 900,
-                  delay: anime.stagger(100),
-                  easing: "easeOutBack"
-                });
-              }, delayAcc);
-
-              delayAcc += 250;
-            });
-
             anime({
-              targets: line,
-              opacity: [0, 1],
-              duration: 600,
-              easing: "easeInOutSine"
+              targets: w,
+              opacity:   [0, 1],
+              translateY:[30, 0],
+              duration:  900,
+              delay:     anime.stagger(100),
+              easing:    "easeOutBack"
             });
-          }, lyric.time);
+          }, delayAcc);
+
+          delayAcc += 250;
+        });
+
+        anime({
+          targets:  line,
+          opacity:  [0, 1],
+          duration: 600,
+          easing:   "easeInOutSine"
         });
       }
     });
   </script>
+
 </body>
 </html>
