@@ -79,6 +79,19 @@
       transform: rotate(90deg);
     }
 
+    /* ✅ Watermark Styling */
+    .watermark {
+      position: fixed;
+      bottom: 10px;
+      right: 15px;
+      font-size: 0.9rem;
+      font-family: 'Poppins', sans-serif;
+      color: rgba(255, 255, 255, 0.6);
+      z-index: 2000;
+      user-select: none;
+      pointer-events: none;
+    }
+
     /* Mobile tweaks */
     @media (max-width: 600px) {
       .lyrics-container {
@@ -100,7 +113,9 @@
 
   <!-- Glassmorphism Music Control -->
   <div id="musicControl" class="playing">
-    <svg id="musicIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg id="musicIcon" xmlns="http://www.w3.org/2000/svg" 
+         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M9 18V5l12-2v13"></path>
       <circle cx="6" cy="18" r="3"></circle>
       <circle cx="18" cy="16" r="3"></circle>
@@ -112,6 +127,9 @@
     <div class="heart"></div>
     <div class="lyrics-container" id="lyrics"></div>
   </div>
+
+  <!-- ✅ Watermark -->
+  <div class="watermark">Made By Pinak</div>
 
   <!-- Anime.js for lyric animations -->
   <script src="anime.min.js"></script>
@@ -136,7 +154,6 @@
       audio.addEventListener("pause", () => control.classList.add("paused"));
 
       // —— NEW LYRIC SYNC LOGIC —— 
-
       const lyrics = [
         { time:    0, text: "AARE JAB TU, BHADAKTI HAIN" },
         { time: 2200, text: "DIL PE CHALE" },
@@ -148,10 +165,8 @@
       let lastTime = 0;
 
       audio.addEventListener("timeupdate", () => {
-        // convert to ms
         const t = audio.currentTime * 1000;
 
-        // detect loop-around
         if (t < lastTime) {
           shown.clear();
           lyricsContainer.innerHTML = "";
@@ -168,7 +183,6 @@
       });
 
       function showLine(text) {
-        // clear previous
         lyricsContainer.innerHTML = "";
         const line = document.createElement("div");
         line.className = "lyric-line";
@@ -204,6 +218,5 @@
       }
     });
   </script>
-
 </body>
 </html>
